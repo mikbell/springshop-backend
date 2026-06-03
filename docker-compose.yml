@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: springshop-db
+    environment:
+      POSTGRES_DB: springshop
+      POSTGRES_USER: springshop_user
+      POSTGRES_PASSWORD: springshop_secure_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - springshop-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U springshop_user -d springshop"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: springshop-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - springshop-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: springshop-api
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: springshop
+      DB_USERNAME: springshop_user
+      DB_PASSWORD: springshop_secure_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - springshop-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  springshop-network:
