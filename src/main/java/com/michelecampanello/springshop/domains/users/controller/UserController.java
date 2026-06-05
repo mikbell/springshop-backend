@@ -29,7 +29,6 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal User user) {
-        System.out.println("CONTROLLER DEBUG: user=" + user + " user.getId()=" + (user != null ? user.getId() : "user_is_null"));
         return ResponseEntity.ok(userService.fetchUser(user.getId()));
     }
 

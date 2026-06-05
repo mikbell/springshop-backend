@@ -101,7 +101,35 @@ class ProductControllerAuthTest {
                 "fake-image".getBytes()
         );
 
-        mockMvc.perform(multipart("/api/v1/products").file(product).file(image))
+        mockMvc.perform(multipart("/api/v1/products")
+                        .file(product)
+                        .file(image)
+                        .param("product", ""))
+            .andExpect(status().isCreated());
+
+        verify(productService).createProduct(any(ProductRequest.class), any(MultipartFile.class));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminPuoCreareProdottoConImmagineDaFormData() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(productService.createProduct(any(ProductRequest.class), any(MultipartFile.class))).thenReturn(stubResponse(id));
+
+        MockMultipartFile image = new MockMultipartFile(
+                "image",
+                "product.png",
+                MediaType.IMAGE_PNG_VALUE,
+                "fake-image".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/v1/products")
+                        .file(image)
+                        .param("name", "Prodotto Test")
+                        .param("description", "desc")
+                        .param("price", "9.99")
+                        .param("stockQuantity", "10")
+                        .param("sku", "SKU-001"))
             .andExpect(status().isCreated());
 
         verify(productService).createProduct(any(ProductRequest.class), any(MultipartFile.class));

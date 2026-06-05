@@ -8,8 +8,20 @@ public record OrderItemResponse(
         UUID productId,
         String productName,
         String sku,
+        OrderProductResponse product,
         BigDecimal priceAtPurchase,
         Integer quantity,
         BigDecimal totalPrice
 ) {
+        public OrderItemResponse(
+                UUID id,
+                UUID productId,
+                String productName,
+                String sku,
+                BigDecimal priceAtPurchase,
+                Integer quantity,
+                BigDecimal totalPrice
+        ) {
+                this(id, productId, productName, sku, null, priceAtPurchase, quantity, totalPrice);
+        }
 }

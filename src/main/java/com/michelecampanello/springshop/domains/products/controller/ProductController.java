@@ -54,10 +54,18 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productRequest));
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, params = "product")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> createProductWithImage(
             @Valid @RequestPart("product") ProductRequest productRequest,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productRequest, image));
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, params = "name")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductResponse> createProductWithImageForm(
+            @Valid @ModelAttribute ProductRequest productRequest,
             @RequestPart(value = "image", required = false) MultipartFile image) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(productRequest, image));
     }

@@ -16,7 +16,10 @@ RUN ./mvnw clean package -DskipTests
 FROM eclipse-temurin:26-jre-alpine
 WORKDIR /app
 
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup -S spring && adduser -S spring -G spring \
+    && mkdir -p /app/uploads/products \
+    && chown -R spring:spring /app/uploads
+
 USER spring:spring
 
 COPY --from=build /app/target/*.jar app.jar

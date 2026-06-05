@@ -7,7 +7,6 @@ import com.michelecampanello.springshop.domains.users.dto.UserResponse;
 import com.michelecampanello.springshop.domains.users.model.User;
 import com.michelecampanello.springshop.domains.users.service.UserService;
 import com.michelecampanello.springshop.support.TestCacheConfig;
-import com.michelecampanello.springshop.support.WithMockAuthUser;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -25,9 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -72,15 +69,9 @@ class UserMeControllerTest {
         User authUser = buildAuthUser(id);
         UserResponse response = new UserResponse(id, "Mario", "Rossi", "mario@x.it",
                 null, null, User.Role.CUSTOMER, true);
-        when(userService.fetchUser(any())).thenAnswer(inv -> {
-            System.out.println("DEBUG INVOCATION: fetchUser called with " + inv.getArgument(0));
-            return response;
-        });
+        when(userService.fetchUser(any())).thenReturn(response);
 
         authenticateAs(authUser);
-        System.out.println("DEBUG BEFORE: authUser.getId()=" + authUser.getId() +
-                           " SecurityContextHolder auth=" + SecurityContextHolder.getContext().getAuthentication() +
-                           " principal.id=" + ((com.michelecampanello.springshop.domains.users.model.User)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
 
         mockMvc.perform(get("/api/v1/users/me"))
             .andExpect(status().isOk())
@@ -88,7 +79,6 @@ class UserMeControllerTest {
 
         org.mockito.ArgumentCaptor<UUID> captor = org.mockito.ArgumentCaptor.forClass(UUID.class);
         org.mockito.Mockito.verify(userService).fetchUser(captor.capture());
-        System.out.println("DEBUG AFTER: actual arg=" + captor.getValue() + " expected=" + id);
     }
 
     @Test

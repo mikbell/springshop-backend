@@ -4,6 +4,8 @@ import com.michelecampanello.springshop.domains.products.model.Product;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +22,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
     Optional<Product> findBySku(String sku);
 
     boolean existsByCategoryId(UUID categoryId);
+    long countByStatus(Product.ProductStatus status);
+    long countByStockQuantityLessThanEqual(int stockQuantity);
+    Page<Product> findByStockQuantityLessThanEqualOrderByStockQuantityAsc(int stockQuantity, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id = :productId")

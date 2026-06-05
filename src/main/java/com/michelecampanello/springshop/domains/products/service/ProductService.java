@@ -13,6 +13,7 @@ import com.michelecampanello.springshop.domains.products.mapper.ProductMapper;
 import com.michelecampanello.springshop.domains.products.model.Product;
 import com.michelecampanello.springshop.domains.products.repository.ProductRepository;
 import com.michelecampanello.springshop.domains.products.repository.ProductSpecifications;
+import com.michelecampanello.springshop.domains.reviews.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -34,6 +35,7 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
     private final ProductImageStorageService productImageStorageService;
+    private final ReviewRepository reviewRepository;
 
     @Cacheable(cacheNames = "products", keyGenerator = "productListKeyGenerator")
     @Transactional(readOnly = true)
@@ -99,10 +101,12 @@ public class ProductService {
             @CacheEvict(cacheNames = "products", allEntries = true),
             @CacheEvict(cacheNames = "product", allEntries = true)
     })
+    @Transactional
     public void deleteProduct(UUID id) {
         if (!productRepository.existsById(id)) {
             throw new ResourceNotFoundException("Prodotto non trovato: " + id);
         }
+        reviewRepository.deleteByProductId(id);
         productRepository.deleteById(id);
     }
 

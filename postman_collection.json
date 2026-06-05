@@ -266,6 +266,58 @@
           }
         },
         {
+          "name": "Create Product With Image (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "T-Shirt Basic",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "T-shirt in cotone",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "19.99",
+                  "type": "text"
+                },
+                {
+                  "key": "stockQuantity",
+                  "value": "100",
+                  "type": "text"
+                },
+                {
+                  "key": "sku",
+                  "value": "{{sku}}",
+                  "type": "text"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "{{categoryId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"]
+            }
+          }
+        },
+        {
           "name": "Update Product (Admin)",
           "request": {
             "method": "PUT",

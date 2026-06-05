@@ -10,6 +10,7 @@ import com.michelecampanello.springshop.domains.products.mapper.ProductMapper;
 import com.michelecampanello.springshop.domains.products.model.Product;
 import com.michelecampanello.springshop.domains.products.model.Product.ProductStatus;
 import com.michelecampanello.springshop.domains.products.repository.ProductRepository;
+import com.michelecampanello.springshop.domains.reviews.repository.ReviewRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,6 +39,7 @@ class ProductServiceTest {
     @Mock CategoryRepository categoryRepository;
     @Mock ProductMapper productMapper;
     @Mock ProductImageStorageService productImageStorageService;
+    @Mock ReviewRepository reviewRepository;
 
     @InjectMocks ProductService productService;
 
@@ -112,5 +114,17 @@ class ProductServiceTest {
         assertThat(product.getImageUrl()).isEqualTo("/uploads/products/generated.png");
         assertThat(result.imageUrl()).isEqualTo("/uploads/products/generated.png");
         verify(productImageStorageService).store(image);
+    }
+
+    @Test
+    void deleteProduct_existingProduct_deletesReviewsBeforeProduct() {
+        UUID productId = UUID.randomUUID();
+        when(productRepository.existsById(productId)).thenReturn(true);
+
+        productService.deleteProduct(productId);
+
+        var ordered = org.mockito.Mockito.inOrder(reviewRepository, productRepository);
+        ordered.verify(reviewRepository).deleteByProductId(productId);
+        ordered.verify(productRepository).deleteById(productId);
     }
 }

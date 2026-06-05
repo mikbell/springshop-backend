@@ -10,8 +10,21 @@ public record OrderResponse(
         UUID id,
         String orderNumber,
         UUID userId,
+        OrderUserResponse user,
         OrderStatus status,
         BigDecimal totalAmount,
         List<OrderItemResponse> items,
         LocalDateTime createdAt
-) {}
+) {
+        public OrderResponse(
+                UUID id,
+                String orderNumber,
+                UUID userId,
+                OrderStatus status,
+                BigDecimal totalAmount,
+                List<OrderItemResponse> items,
+                LocalDateTime createdAt
+        ) {
+                this(id, orderNumber, userId, null, status, totalAmount, items, createdAt);
+        }
+}
