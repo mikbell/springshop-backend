@@ -19,6 +19,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -26,6 +28,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -77,6 +80,31 @@ class ProductControllerAuthTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRequest())))
             .andExpect(status().isCreated());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminPuoCreareProdottoConImmagine() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(productService.createProduct(any(ProductRequest.class), any(MultipartFile.class))).thenReturn(stubResponse(id));
+
+        MockMultipartFile product = new MockMultipartFile(
+                "product",
+                "",
+                MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(validRequest())
+        );
+        MockMultipartFile image = new MockMultipartFile(
+                "image",
+                "product.png",
+                MediaType.IMAGE_PNG_VALUE,
+                "fake-image".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/v1/products").file(product).file(image))
+            .andExpect(status().isCreated());
+
+        verify(productService).createProduct(any(ProductRequest.class), any(MultipartFile.class));
     }
 
     @Test

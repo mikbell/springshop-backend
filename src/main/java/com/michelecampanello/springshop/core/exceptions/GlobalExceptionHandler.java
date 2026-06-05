@@ -62,6 +62,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(InvalidFileUploadException.class)
+    public ResponseEntity<ApiError> handleInvalidFileUpload(InvalidFileUploadException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiError> handleAuthentication(AuthenticationException ex) {
         // Messaggio generico per non rivelare se a essere errata sia l'email o la password

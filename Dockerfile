@@ -21,6 +21,6 @@ USER spring:spring
 
 COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 3000
+EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

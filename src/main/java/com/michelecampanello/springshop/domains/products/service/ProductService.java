@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -32,6 +33,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final ProductImageStorageService productImageStorageService;
 
     @Cacheable(cacheNames = "products", keyGenerator = "productListKeyGenerator")
     @Transactional(readOnly = true)
@@ -60,10 +62,19 @@ public class ProductService {
 
     @CacheEvict(cacheNames = "products", allEntries = true)
     public ProductResponse createProduct(ProductRequest req) {
+        return createProduct(req, null);
+    }
+
+    @CacheEvict(cacheNames = "products", allEntries = true)
+    public ProductResponse createProduct(ProductRequest req, MultipartFile image) {
         if (productRepository.findBySku(req.sku()).isPresent()) {
             throw new DuplicateResourceException("Un prodotto con questo codice SKU è già presente nel catalogo.");
         }
         Product product = productMapper.toEntity(req);
+        String uploadedImageUrl = productImageStorageService.store(image);
+        if (uploadedImageUrl != null) {
+            product.setImageUrl(uploadedImageUrl);
+        }
         product.setSlug(generateUniqueSlug(req.name()));
         product.setCategory(resolveCategory(req.categoryId()));
         return productMapper.toResponse(productRepository.save(product));

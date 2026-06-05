@@ -2,6 +2,8 @@
 package com.michelecampanello.springshop.domains.products.service;
 
 import com.michelecampanello.springshop.core.dto.PageResponse;
+import com.michelecampanello.springshop.domains.categories.repository.CategoryRepository;
+import com.michelecampanello.springshop.domains.products.dto.ProductRequest;
 import com.michelecampanello.springshop.domains.products.dto.ProductResponse;
 import com.michelecampanello.springshop.domains.products.dto.ProductSearchCriteria;
 import com.michelecampanello.springshop.domains.products.mapper.ProductMapper;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -32,7 +35,9 @@ import static org.mockito.Mockito.when;
 class ProductServiceTest {
 
     @Mock ProductRepository productRepository;
+    @Mock CategoryRepository categoryRepository;
     @Mock ProductMapper productMapper;
+    @Mock ProductImageStorageService productImageStorageService;
 
     @InjectMocks ProductService productService;
 
@@ -85,5 +90,27 @@ class ProductServiceTest {
 
         assertThat(result.getNumber()).isEqualTo(1);
         assertThat(result.getSize()).isEqualTo(5);
+    }
+
+    @Test
+    void createProduct_withImage_usesUploadedImageUrl() {
+        ProductRequest request = new ProductRequest("Test", "desc", BigDecimal.TEN, 10, "SKU-IMG", "https://old.example/img.png");
+        MockMultipartFile image = new MockMultipartFile("image", "product.png", "image/png", "image".getBytes());
+        Product product = new Product();
+        ProductResponse response = new ProductResponse(UUID.randomUUID(), "Test", "desc", BigDecimal.TEN, 10,
+                "SKU-IMG", "test", "/uploads/products/generated.png", ProductStatus.AVAILABLE, null, null);
+
+        when(productRepository.findBySku("SKU-IMG")).thenReturn(java.util.Optional.empty());
+        when(productRepository.findBySlug("test")).thenReturn(java.util.Optional.empty());
+        when(productMapper.toEntity(request)).thenReturn(product);
+        when(productImageStorageService.store(image)).thenReturn("/uploads/products/generated.png");
+        when(productRepository.save(product)).thenReturn(product);
+        when(productMapper.toResponse(product)).thenReturn(response);
+
+        ProductResponse result = productService.createProduct(request, image);
+
+        assertThat(product.getImageUrl()).isEqualTo("/uploads/products/generated.png");
+        assertThat(result.imageUrl()).isEqualTo("/uploads/products/generated.png");
+        verify(productImageStorageService).store(image);
     }
 }
