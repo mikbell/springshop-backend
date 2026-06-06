@@ -1,5 +1,6 @@
 package com.michelecampanello.springshop.core.config;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
@@ -54,17 +55,17 @@ public class RedisConfig implements CachingConfigurer {
         private static final Logger log = LoggerFactory.getLogger(LoggingCacheErrorHandler.class);
 
         @Override
-        public void handleCacheGetError(RuntimeException ex, Cache cache, Object key) {
+        public void handleCacheGetError(RuntimeException ex, Cache cache, @NonNull Object key) {
             log.warn("Cache GET failed [cache={}, key={}]: {}", cache.getName(), key, ex.getMessage());
         }
 
         @Override
-        public void handleCachePutError(RuntimeException ex, Cache cache, Object key, Object value) {
+        public void handleCachePutError(RuntimeException ex, Cache cache, @NonNull Object key, Object value) {
             log.warn("Cache PUT failed [cache={}, key={}]: {}", cache.getName(), key, ex.getMessage());
         }
 
         @Override
-        public void handleCacheEvictError(RuntimeException ex, Cache cache, Object key) {
+        public void handleCacheEvictError(RuntimeException ex, Cache cache, @NonNull Object key) {
             log.warn("Cache EVICT failed [cache={}, key={}]: {}", cache.getName(), key, ex.getMessage());
         }
 
