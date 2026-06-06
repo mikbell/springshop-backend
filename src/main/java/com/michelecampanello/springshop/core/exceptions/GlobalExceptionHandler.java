@@ -1,6 +1,8 @@
 package com.michelecampanello.springshop.core.exceptions;
 
 import com.michelecampanello.springshop.core.exceptions.InvalidOrderStatusTransitionException;
+import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.StripeException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -65,6 +67,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidFileUploadException.class)
     public ResponseEntity<ApiError> handleInvalidFileUpload(InvalidFileUploadException ex) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(SignatureVerificationException.class)
+    public ResponseEntity<ApiError> handleStripeSignature(SignatureVerificationException ex) {
+        return build(HttpStatus.BAD_REQUEST, "Firma webhook Stripe non valida");
+    }
+
+    @ExceptionHandler(StripeException.class)
+    public ResponseEntity<ApiError> handleStripeException(StripeException ex) {
+        return build(HttpStatus.BAD_GATEWAY, "Errore durante la comunicazione con Stripe");
     }
 
     @ExceptionHandler(AuthenticationException.class)

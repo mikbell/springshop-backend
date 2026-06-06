@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -49,6 +50,15 @@ public class OrderService {
     })
     @Transactional
     public OrderResponse checkout(UUID userId) {
+        return orderMapper.toResponse(createPendingOrderFromCart(userId));
+    }
+
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "products", allEntries = true),
+            @CacheEvict(cacheNames = "product", allEntries = true)
+    })
+    @Transactional
+    public Order createPendingOrderFromCart(UUID userId) {
         // 1. Recuperiamo il carrello dell'utente
         var cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Carrello non trovato per l'utente: " + userId));
@@ -96,7 +106,25 @@ public class OrderService {
         cart.getItems().clear();
         cartRepository.save(cart);
 
-        return orderMapper.toResponse(savedOrder);
+        return savedOrder;
+    }
+
+    @Transactional
+    public Order markOrderAsPaidFromStripe(String checkoutSessionId, String paymentIntentId) {
+        Order order = orderRepository.findByStripeCheckoutSessionId(checkoutSessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ordine non trovato per sessione Stripe: " + checkoutSessionId));
+
+        if (order.getStatus() == OrderStatus.PAID) {
+            return order;
+        }
+
+        if (!order.getStatus().canTransitionTo(OrderStatus.PAID)) {
+            throw new InvalidOrderStatusTransitionException(order.getStatus(), OrderStatus.PAID);
+        }
+
+        order.setStripePaymentIntentId(paymentIntentId);
+        order.setStatus(OrderStatus.PAID);
+        return orderRepository.save(order);
     }
 
     @Transactional(readOnly = true)
@@ -112,7 +140,7 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ordine non trovato: " + orderId));
 
         boolean isAdmin = currentUser.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"));
 
         if (!isAdmin && !order.getUserId().equals(currentUser.getId())) {
             throw new AuthorizationDeniedException("Non autorizzato ad accedere a questo ordine", () -> false);

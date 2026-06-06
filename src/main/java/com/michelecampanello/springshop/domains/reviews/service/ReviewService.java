@@ -20,6 +20,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -91,7 +92,7 @@ public class ReviewService {
 
     private void assertCanManage(Review review, User currentUser) {
         boolean isAdmin = currentUser.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"));
         if (!isAdmin && !review.getUser().getId().equals(currentUser.getId())) {
             throw new AuthorizationDeniedException("Non autorizzato a modificare questa recensione", () -> false);
         }

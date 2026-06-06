@@ -247,6 +247,34 @@ class OrderServiceTest {
                 () -> orderService.updateOrderStatus(ORDER_ID, OrderStatus.PAID));
     }
 
+    @Test
+    void markOrderAsPaidFromStripe_pendingOrder_updatesStatusAndPaymentIntent() {
+        Order order = buildOrder(USER_ID, OrderStatus.PENDING);
+        order.setStripeCheckoutSessionId("cs_test_123");
+
+        when(orderRepository.findByStripeCheckoutSessionId("cs_test_123")).thenReturn(Optional.of(order));
+        when(orderRepository.save(order)).thenReturn(order);
+
+        Order result = orderService.markOrderAsPaidFromStripe("cs_test_123", "pi_test_123");
+
+        assertThat(result.getStatus()).isEqualTo(OrderStatus.PAID);
+        assertThat(result.getStripePaymentIntentId()).isEqualTo("pi_test_123");
+        verify(orderRepository).save(order);
+    }
+
+    @Test
+    void markOrderAsPaidFromStripe_alreadyPaid_isIdempotent() {
+        Order order = buildOrder(USER_ID, OrderStatus.PAID);
+        order.setStripeCheckoutSessionId("cs_test_123");
+
+        when(orderRepository.findByStripeCheckoutSessionId("cs_test_123")).thenReturn(Optional.of(order));
+
+        Order result = orderService.markOrderAsPaidFromStripe("cs_test_123", "pi_test_123");
+
+        assertThat(result).isEqualTo(order);
+        verify(orderRepository, never()).save(any());
+    }
+
     // ── getAllOrders ─────────────────────────────────────────────────────────
 
     @Test

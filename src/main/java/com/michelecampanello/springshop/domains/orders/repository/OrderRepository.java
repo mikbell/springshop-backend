@@ -13,12 +13,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByUserId(UUID userId);
     Page<Order> findByStatus(OrderStatus status, Pageable pageable);
+    Optional<Order> findByStripeCheckoutSessionId(String stripeCheckoutSessionId);
     List<Order> findTop5ByOrderByCreatedAtDesc();
     long countByStatus(OrderStatus status);
 
