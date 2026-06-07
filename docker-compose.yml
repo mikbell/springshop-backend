@@ -39,8 +39,9 @@ services:
       dockerfile: Dockerfile
     container_name: springshop-api
     ports:
-      - "8080:8080"
+      - "3000:3000"
     environment:
+      SERVER_PORT: 3000
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: springshop

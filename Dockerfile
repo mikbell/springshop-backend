@@ -16,7 +16,8 @@ RUN ./mvnw clean package -DskipTests
 FROM eclipse-temurin:26-jre-alpine
 WORKDIR /app
 
-RUN addgroup -S spring && adduser -S spring -G spring \
+RUN apk add --no-cache curl \
+    && addgroup -S spring && adduser -S spring -G spring \
     && mkdir -p /app/uploads/products \
     && chown -R spring:spring /app/uploads
 
@@ -24,6 +25,9 @@ USER spring:spring
 
 COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 8080
+EXPOSE 3000
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
+    CMD curl -fsS "http://localhost:${SERVER_PORT:-3000}/actuator/health" || exit 1
+
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS:-} -jar app.jar"]

@@ -3,3 +3,6 @@ target/
 .git/
 *.iml
 .mvn/wrapper/maven-wrapper.jar
+.env
+uploads/
+postman_collection.json
