@@ -1,6 +1,8 @@
 FROM eclipse-temurin:26-jdk AS build
 WORKDIR /app
 
+ENV MAVEN_OPTS="-Xmx512m -XX:MaxRAMPercentage=75.0"
+
 RUN apt-get update && apt-get install -y tar curl && rm -rf /var/lib/apt/lists/*
 
 COPY .mvn/ .mvn
@@ -11,7 +13,7 @@ RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 RUN ./mvnw dependency:go-offline -B
 
 COPY src ./src
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -DskipTests -Dmaven.test.skip=true
 
 FROM eclipse-temurin:26-jre-alpine
 WORKDIR /app
